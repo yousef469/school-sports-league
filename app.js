@@ -211,8 +211,7 @@ async function openMatchDetail(matchId) {
 
 function closeModal() { document.getElementById('matchModal').classList.remove('active'); }
 
-// Tea
-m Registration
+// Team Registration
 const sportSelect = document.getElementById('sport');
 const gradeSelect = document.getElementById('grade');
 sportSelect?.addEventListener('change', updateTeammateInputs);
