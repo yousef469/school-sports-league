@@ -387,14 +387,31 @@ async function performDraw(sport) {
 }
 
 async function loadAdminMatches() {
-    const matches = await fetch(`/api/admin/matches?sport=${currentMatchFilter}`).then(r => r.json());
-    const rn = ['R16', 'QF', 'SF', 'F'];
-    document.getElementById('adminMatchesList').innerHTML = matches.length ? matches.map(m => `
-        <div class="match-item-admin" onclick="openAdminMatch(${m.id})">
-            <span>${rn[m.round-1]}</span> ${m.is_live ? '🔴' : ''} 
-            <strong>${m.team1_name || 'TBD'}</strong> ${m.team1_score ?? '-'} - ${m.team2_score ?? '-'} <strong>${m.team2_name || 'TBD'}</strong>
-        </div>
-    `).join('') : '<p>No matches</p>';
+    try {
+        const res = await fetch(`/api/admin/matches?sport=${currentMatchFilter}`);
+        const matches = await res.json();
+        const rn = ['R16', 'QF', 'SF', 'Final'];
+        
+        if (!matches || matches.length === 0) {
+            document.getElementById('adminMatchesList').innerHTML = '<p style="color:var(--text-muted);padding:1rem;">No matches yet. Perform the draw first.</p>';
+            return;
+        }
+        
+        document.getElementById('adminMatchesList').innerHTML = matches.map(m => `
+            <div class="match-item-admin" onclick="openAdminMatch(${m.id})">
+                <span class="match-round-badge">${rn[m.round-1] || 'R' + m.round}</span>
+                ${m.is_live ? '<span class="live-badge">🔴 LIVE</span>' : ''}
+                <div class="match-teams-admin">
+                    <strong>${m.team1_name || 'TBD'}</strong> 
+                    <span class="score">${m.team1_score ?? '-'} - ${m.team2_score ?? '-'}</span> 
+                    <strong>${m.team2_name || 'TBD'}</strong>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error('Error loading matches:', e);
+        document.getElementById('adminMatchesList').innerHTML = '<p style="color:var(--danger);">Error loading matches</p>';
+    }
 }
 
 function filterMatches(s) {

@@ -335,7 +335,7 @@ tches List */
 }
 
 .bracket-side { display: flex; align-items: center; }
-.bracket-side.right { flex-direction: row-reverse; }
+.bracket-side.right { flex-direction: row; }
 
 .bracket-column {
     display: flex;
@@ -1089,4 +1089,38 @@ Teams Section */
     .bracket-match-card { width: 120px; }
     .bracket-team-row { font-size: 0.65rem; padding: 0.4rem 0.5rem; }
     .teammates-grid { grid-template-columns: 1fr; }
+}
+
+/* A
+dmin Match Items */
+.match-item-admin {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.match-round-badge {
+    background: var(--primary);
+    color: white;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.match-item-admin .live-badge {
+    background: var(--danger);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+}
+.match-teams-admin {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.match-teams-admin .score {
+    color: var(--primary);
+    font-weight: 700;
 }
