@@ -1,0 +1,145 @@
+{
+  "football": {
+    "maxPlayers": 11,
+    "teams": [
+      {
+        "name": "Football Team 1",
+        "players": []
+      },
+      {
+        "name": "Football Team 2",
+        "players": []
+      },
+      {
+        "name": "Football Team 3",
+        "players": []
+      },
+      {
+        "name": "Football Team 4",
+        "players": []
+      },
+      {
+        "name": "Football Team 5",
+        "players": []
+      },
+      {
+        "name": "Football Team 6",
+        "players": []
+      },
+      {
+        "name": "Football Team 7",
+        "players": []
+      },
+      {
+        "name": "Football Team 8",
+        "players": []
+      },
+      {
+        "name": "Football Team 9",
+        "players": []
+      },
+      {
+        "name": "Football Team 10",
+        "players": []
+      },
+      {
+        "name": "Football Team 11",
+        "players": []
+      },
+      {
+        "name": "Football Team 12",
+        "players": []
+      },
+      {
+        "name": "Football Team 13",
+        "players": []
+      },
+      {
+        "name": "Football Team 14",
+        "players": []
+      },
+      {
+        "name": "Football Team 15",
+        "players": []
+      },
+      {
+        "name": "Football Team 16",
+        "players": []
+      }
+    ]
+  },
+  "volleyball": {
+    "maxPlayers": 6,
+    "teams": [
+      {
+        "name": "Volleyball Team 1",
+        "players": [
+          {
+            "name": "yousef",
+            "grade": "10"
+          }
+        ]
+      },
+      {
+        "name": "Volleyball Team 2",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 3",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 4",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 5",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 6",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 7",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 8",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 9",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 10",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 11",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 12",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 13",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 14",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 15",
+        "players": []
+      },
+      {
+        "name": "Volleyball Team 16",
+        "players": []
+      }
+    ]
+  }
+}
