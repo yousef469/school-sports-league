@@ -16,6 +16,7 @@
                 <nav class="main-nav">
                     <button class="main-nav-btn active" onclick="showSection('matches')">Matches</button>
                     <button class="main-nav-btn" onclick="showSection('table')">Table</button>
+                    <button class="main-nav-btn" onclick="showSection('teams')">Teams</button>
                 </nav>
             </div>
             <nav class="header-nav">
@@ -42,6 +43,15 @@
                     </div>
                 </div>
                 <div id="matchesList" class="matches-list"></div>
+            </div>
+
+            <!-- Teams Section -->
+            <div id="teamsSection" class="main-section">
+                <div class="teams-header">
+                    <button class="teams-sport-btn active" data-sport="football" onclick="switchTeamsSport('football')">⚽ Football Teams</button>
+                    <button class="teams-sport-btn" data-sport="volleyball" onclick="switchTeamsSport('volleyball')">🏐 Volleyball Teams</button>
+                </div>
+                <div id="teamsListView" class="teams-grid-view"></div>
             </div>
 
             <!-- Table Section -->

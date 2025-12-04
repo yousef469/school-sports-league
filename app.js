@@ -6,6 +6,7 @@ let currentSportFilter = 'all';
 let currentStatusFilter = 'all';
 let currentTableSport = 'football';
 let currentMatchFilter = 'football';
+let currentTeamsSport = 'football';
 
 // Page & Section Navigation
 function showPage(pageId) {
@@ -26,6 +27,7 @@ async function loadHomeData() {
     await loadAllMatches();
     renderMatchesList();
     renderBracket();
+    loadTeamsView();
 }
 
 async function loadAllMatches() {
@@ -175,6 +177,38 @@ function renderBracketMatchInner(m) {
             <span class="team-score">${m.team2_score ?? ''}</span>
         </div>
     `;
+}
+
+// Teams View
+function switchTeamsSport(sport) {
+    currentTeamsSport = sport;
+    document.querySelectorAll('.teams-sport-btn').forEach(b => b.classList.toggle('active', b.dataset.sport === sport));
+    loadTeamsView();
+}
+
+async function loadTeamsView() {
+    try {
+        const teams = await fetch(`/api/teams?sport=${currentTeamsSport}`).then(r => r.json());
+        const container = document.getElementById('teamsListView');
+        const icon = currentTeamsSport === 'football' ? '⚽' : '🏐';
+        
+        if (!teams || teams.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">No teams registered yet</div>';
+            return;
+        }
+        
+        container.innerHTML = teams.map(t => `
+            <div class="team-card-view ${t.is_champion ? 'champion' : ''}">
+                <div class="team-header">
+                    <span class="team-icon">${icon}</span>
+                    <span class="team-name">${t.team_name}</span>
+                    ${t.is_champion ? '<span class="champion-badge">🏆 CHAMPION</span>' : ''}
+                </div>
+                <div class="team-meta">Grade ${t.grade} • Captain: <strong>${t.captain_name}</strong></div>
+                <div class="team-players"><strong>Players:</strong> ${t.players.join(', ')}</div>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
 }
 
 // Match Detail

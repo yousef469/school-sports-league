@@ -549,3 +549,90 @@ body {
     .bracket-match-card { width: 110px; }
     .bracket-team-row { font-size: 0.65rem; padding: 0.3rem; }
 }
+
+/* Tea
+ms Section */
+.teams-header {
+    padding: 1rem 1.5rem;
+    background: var(--dark);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0.5rem;
+}
+
+.teams-sport-btn {
+    padding: 0.6rem 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.teams-sport-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.teams-grid-view {
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.team-card-view {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s;
+}
+.team-card-view:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+.team-card-view.champion {
+    border-color: var(--warning);
+    background: rgba(245,158,11,0.1);
+}
+
+.team-card-view .team-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.team-card-view .team-icon {
+    font-size: 2rem;
+}
+.team-card-view .team-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+.team-card-view .champion-badge {
+    background: var(--warning);
+    color: #000;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.team-card-view .team-meta {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.team-card-view .team-players {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+.team-card-view .team-players strong {
+    color: var(--text);
+}
