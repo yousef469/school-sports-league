@@ -233,8 +233,7 @@ function closeModal() {
     document.getElementById('matchModal').classList.remove('active');
 }
 
-// Tea
-m Registration
+// Team Registration
 const sportSelect = document.getElementById('sport');
 const gradeSelect = document.getElementById('grade');
 
@@ -488,8 +487,7 @@ async function setChampion(sport) {
     }
 }
 
-// Admi
-n Match Modal
+// Admin Match Modal
 let currentMatchId = null;
 let currentRating = 0;
 

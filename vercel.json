@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/admin/teams", "destination": "/api/teams" },
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
