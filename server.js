@@ -45,6 +45,18 @@ app.get('/api/verify-team', async (req, res) => {
     res.json({ valid: !!data });
 });
 
+// Get teams
+app.get('/api/teams', async (req, res) => {
+    try {
+        let query = supabase.from('teams').select('*').order('created_at');
+        if (req.query.sport) query = query.eq('sport', req.query.sport);
+        const { data } = await query;
+        res.json(data || []);
+    } catch (e) {
+        res.json([]);
+    }
+});
+
 // Create team
 app.post('/api/teams', async (req, res) => {
     const { teamName, captainName, grade, sport, password, teammates } = req.body;
