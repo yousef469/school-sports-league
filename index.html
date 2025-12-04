@@ -18,44 +18,45 @@
             </nav>
         </header>
 
-        <!-- Home Page - Teams & Matches -->
+        <!-- Home Page -->
         <div id="homePage" class="page active">
-            <div class="sport-tabs">
-                <button class="sport-tab active" data-sport="football" onclick="switchSport('football')">
-                    <span class="sport-icon">⚽</span>
-                    <span>Football</span>
-                </button>
-                <button class="sport-tab" data-sport="volleyball" onclick="switchSport('volleyball')">
-                    <span class="sport-icon">🏐</span>
-                    <span>Volleyball</span>
-                </button>
-            </div>
+            <!-- Matches Section -->
+            <section class="section">
+                <h2 class="section-title">🔴 Live Matches</h2>
+                <div id="liveMatches" class="matches-container"></div>
+            </section>
 
-            <div class="home-content">
-                <!-- Live Matches Section -->
-                <section class="matches-section live-section">
-                    <h2>🔴 Live Matches</h2>
-                    <div id="liveMatches" class="matches-row"></div>
-                </section>
+            <section class="section">
+                <h2 class="section-title">📅 Upcoming Matches</h2>
+                <div id="upcomingMatches" class="matches-container"></div>
+            </section>
 
-                <!-- Upcoming Matches -->
-                <section class="matches-section">
-                    <h2>📅 Upcoming Matches</h2>
-                    <div id="upcomingMatches" class="matches-row"></div>
-                </section>
+            <section class="section">
+                <h2 class="section-title">✅ Completed Matches</h2>
+                <div id="completedMatches" class="matches-container"></div>
+            </section>
 
-                <!-- Ended Matches -->
-                <section class="matches-section">
-                    <h2>✅ Completed Matches</h2>
-                    <div id="endedMatches" class="matches-row"></div>
-                </section>
+            <!-- Tournament Bracket Section -->
+            <section class="section bracket-section">
+                <h2 class="section-title">🏆 Tournament Bracket</h2>
+                <div class="bracket-toggle">
+                    <button class="bracket-btn active" data-sport="football" onclick="switchBracket('football')">⚽ Football</button>
+                    <button class="bracket-btn" data-sport="volleyball" onclick="switchBracket('volleyball')">🏐 Volleyball</button>
+                </div>
+                <div class="bracket-wrapper">
+                    <div id="tournamentBracket" class="tournament-bracket"></div>
+                </div>
+            </section>
 
-                <!-- Teams Section -->
-                <section class="teams-section">
-                    <h2>👥 Registered Teams</h2>
-                    <div id="teamsList" class="teams-grid"></div>
-                </section>
-            </div>
+            <!-- Teams Section -->
+            <section class="section">
+                <h2 class="section-title">👥 Registered Teams</h2>
+                <div class="teams-toggle">
+                    <button class="teams-btn active" onclick="showTeams('football')">⚽ Football</button>
+                    <button class="teams-btn" onclick="showTeams('volleyball')">🏐 Volleyball</button>
+                </div>
+                <div id="teamsList" class="teams-grid"></div>
+            </section>
         </div>
 
         <!-- Join Competition Page -->
@@ -105,8 +106,7 @@
                             <label>Team Password</label>
                             <input type="password" id="teamPassword" placeholder="Create a password">
                             <div class="warning-box">
-                                <span class="warning-icon">⚠️</span>
-                                <span>DO NOT SHARE THIS PASSWORD OR YOUR TEAM WILL BE ELIMINATED!</span>
+                                <span>⚠️ DO NOT SHARE THIS PASSWORD OR YOUR TEAM WILL BE ELIMINATED!</span>
                             </div>
                         </div>
 
@@ -161,14 +161,12 @@
                     <div class="draw-section">
                         <h3>⚽ Football Draw</h3>
                         <p id="footballDrawStatus"></p>
-                        <button class="btn btn-primary" onclick="performDraw('football')">🎲 Randomize Football Draw</button>
-                        <div id="footballDrawPreview" class="draw-preview"></div>
+                        <button class="btn btn-primary" onclick="performDraw('football')">🎲 Randomize Draw</button>
                     </div>
                     <div class="draw-section">
                         <h3>🏐 Volleyball Draw</h3>
                         <p id="volleyballDrawStatus"></p>
-                        <button class="btn btn-primary" onclick="performDraw('volleyball')">🎲 Randomize Volleyball Draw</button>
-                        <div id="volleyballDrawPreview" class="draw-preview"></div>
+                        <button class="btn btn-primary" onclick="performDraw('volleyball')">🎲 Randomize Draw</button>
                     </div>
                 </div>
                 
@@ -182,22 +180,21 @@
                 
                 <div id="adminChampion" class="admin-tab">
                     <h3>🏆 Set Defending Champion</h3>
-                    <p class="hint">Champion team automatically qualifies for next tournament</p>
                     <div class="champion-section">
                         <h4>⚽ Football Champion</h4>
                         <select id="footballChampion"></select>
-                        <button class="btn btn-small" onclick="setChampion('football')">Set Champion</button>
+                        <button class="btn btn-small" onclick="setChampion('football')">Set</button>
                     </div>
                     <div class="champion-section">
                         <h4>🏐 Volleyball Champion</h4>
                         <select id="volleyballChampion"></select>
-                        <button class="btn btn-small" onclick="setChampion('volleyball')">Set Champion</button>
+                        <button class="btn btn-small" onclick="setChampion('volleyball')">Set</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Match Detail Modal -->
+        <!-- Match Modal -->
         <div id="matchModal" class="modal">
             <div class="modal-content">
                 <button class="modal-close" onclick="closeModal()">×</button>

@@ -1,8 +1,10 @@
 const TEAM_SIZES = { football: 8, volleyball: 5 };
 const ADMIN_PASSWORD = 'hijaznationalschool1991';
 
-let currentSport = 'football';
+let currentBracketSport = 'football';
+let currentTeamsSport = 'football';
 let currentMatchFilter = 'football';
+let allMatches = { football: [], volleyball: [] };
 
 // Page Navigation
 function showPage(pageId) {
@@ -11,60 +13,62 @@ function showPage(pageId) {
     if (pageId === 'homePage') loadHomeData();
 }
 
-// Load home page data
+// Load all home data
 async function loadHomeData() {
-    await loadMatches();
-    await loadTeams();
+    await loadAllMatches();
+    renderMatches();
+    renderBracket();
+    loadTeams(currentTeamsSport);
 }
 
-// Switch sport tab
-function switchSport(sport) {
-    currentSport = sport;
-    document.querySelectorAll('.sport-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.sport === sport);
-    });
-    loadHomeData();
-}
-
-// Load matches for home page
-async function loadMatches() {
+// Load matches for both sports
+async function loadAllMatches() {
     try {
-        const res = await fetch(`/api/bracket/${currentSport}`);
-        const data = await res.json();
+        const [footballRes, volleyballRes] = await Promise.all([
+            fetch('/api/bracket/football'),
+            fetch('/api/bracket/volleyball')
+        ]);
+        const footballData = await footballRes.json();
+        const volleyballData = await volleyballRes.json();
         
-        const matches = data.matches || [];
-        
-        const live = matches.filter(m => m.is_live);
-        const upcoming = matches.filter(m => !m.is_live && !m.winner_id && m.team1_id && m.team2_id);
-        const ended = matches.filter(m => m.winner_id);
-        
-        document.getElementById('liveMatches').innerHTML = live.length > 0
-            ? live.map(m => renderMatchCard(m, true)).join('')
-            : '<p class="no-matches">No live matches right now</p>';
-        
-        document.getElementById('upcomingMatches').innerHTML = upcoming.length > 0
-            ? upcoming.map(m => renderMatchCard(m)).join('')
-            : '<p class="no-matches">No upcoming matches scheduled</p>';
-        
-        document.getElementById('endedMatches').innerHTML = ended.length > 0
-            ? ended.map(m => renderMatchCard(m)).join('')
-            : '<p class="no-matches">No completed matches yet</p>';
+        allMatches.football = footballData.matches || [];
+        allMatches.volleyball = volleyballData.matches || [];
     } catch (e) {
         console.error(e);
     }
 }
 
-function renderMatchCard(match, isLive = false) {
+// Render matches by status
+function renderMatches() {
+    const all = [...allMatches.football, ...allMatches.volleyball];
+    
+    const live = all.filter(m => m.is_live);
+    const upcoming = all.filter(m => !m.is_live && !m.winner_id && m.team1_id && m.team2_id);
+    const completed = all.filter(m => m.winner_id);
+    
+    document.getElementById('liveMatches').innerHTML = live.length > 0
+        ? live.map(m => renderMatchCard(m, 'live')).join('')
+        : '<p class="no-matches">No live matches right now</p>';
+    
+    document.getElementById('upcomingMatches').innerHTML = upcoming.length > 0
+        ? upcoming.map(m => renderMatchCard(m, 'upcoming')).join('')
+        : '<p class="no-matches">No upcoming matches</p>';
+    
+    document.getElementById('completedMatches').innerHTML = completed.length > 0
+        ? completed.map(m => renderMatchCard(m, 'ended')).join('')
+        : '<p class="no-matches">No completed matches yet</p>';
+}
+
+function renderMatchCard(match, status) {
     const roundNames = ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'];
     const team1Winner = match.winner_id === match.team1_id;
     const team2Winner = match.winner_id === match.team2_id;
+    const sportClass = match.sport === 'volleyball' ? 'volleyball' : '';
     
     return `
-        <div class="match-card ${isLive ? 'live' : ''}" onclick="openMatchDetail(${match.id})">
-            <div class="match-header">
-                <span>${roundNames[match.round - 1] || 'Match'}</span>
-                ${isLive ? '<span class="live-badge">LIVE</span>' : ''}
-            </div>
+        <div class="match-card ${status}" onclick="openMatchDetail(${match.id})">
+            <span class="match-sport ${sportClass}">${match.sport === 'football' ? '⚽' : '🏐'} ${match.sport}</span>
+            <span class="match-status ${status}">${status === 'live' ? '🔴 LIVE' : status === 'ended' ? 'ENDED' : 'UPCOMING'}</span>
             <div class="match-teams">
                 <div class="match-team ${team1Winner ? 'winner' : ''}">
                     <div class="name">${match.team1_name || 'TBD'}</div>
@@ -80,10 +84,76 @@ function renderMatchCard(match, isLive = false) {
     `;
 }
 
-// Load teams
-async function loadTeams() {
+// Bracket
+function switchBracket(sport) {
+    currentBracketSport = sport;
+    document.querySelectorAll('.bracket-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sport === sport);
+    });
+    renderBracket();
+}
+
+function renderBracket() {
+    const matches = allMatches[currentBracketSport];
+    const container = document.getElementById('tournamentBracket');
+    
+    if (!matches || matches.length === 0) {
+        container.innerHTML = '<p class="no-matches">Draw not made yet</p>';
+        return;
+    }
+    
+    const rounds = { 1: [], 2: [], 3: [], 4: [] };
+    matches.forEach(m => {
+        if (rounds[m.round]) rounds[m.round].push(m);
+    });
+    
+    const roundNames = ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'];
+    
+    let html = '';
+    [1, 2, 3, 4].forEach((round, idx) => {
+        html += `<div class="bracket-round" style="margin-top: ${idx * 30}px;">
+            <div class="round-header">${roundNames[idx]}</div>`;
+        
+        rounds[round].forEach(match => {
+            const team1Winner = match.winner_id === match.team1_id;
+            const team2Winner = match.winner_id === match.team2_id;
+            const isLive = match.is_live;
+            
+            html += `
+                <div class="bracket-match ${isLive ? 'live' : ''}" onclick="openMatchDetail(${match.id})">
+                    <div class="bracket-team ${team1Winner ? 'winner' : ''} ${!match.team1_id ? 'tbd' : ''}">
+                        <span class="team-name">${match.team1_name || 'TBD'}</span>
+                        <span class="team-score">${match.team1_score ?? '-'}</span>
+                    </div>
+                    <div class="bracket-team ${team2Winner ? 'winner' : ''} ${!match.team2_id ? 'tbd' : ''}">
+                        <span class="team-name">${match.team2_name || 'TBD'}</span>
+                        <span class="team-score">${match.team2_score ?? '-'}</span>
+                    </div>
+                    <div class="bracket-status ${isLive ? 'live' : ''}">
+                        ${isLive ? '🔴 LIVE' : match.winner_id ? '✓ Ended' : '○ Upcoming'}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    });
+    
+    container.innerHTML = html;
+}
+
+// Teams
+function showTeams(sport) {
+    currentTeamsSport = sport;
+    document.querySelectorAll('.teams-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase().includes(sport));
+    });
+    loadTeams(sport);
+}
+
+async function loadTeams(sport) {
     try {
-        const res = await fetch(`/api/admin/teams?sport=${currentSport}`);
+        const res = await fetch(`/api/teams?sport=${sport}`);
         const teams = await res.json();
         
         document.getElementById('teamsList').innerHTML = teams.length > 0
@@ -100,7 +170,7 @@ async function loadTeams() {
     }
 }
 
-// Match Detail Modal (Viewer)
+// Match Detail Modal
 async function openMatchDetail(matchId) {
     try {
         const res = await fetch(`/api/match/${matchId}`);
@@ -110,13 +180,12 @@ async function openMatchDetail(matchId) {
         const team1Winner = match.winner_id === match.team1_id;
         const team2Winner = match.winner_id === match.team2_id;
         
-        // Generate AI analysis based on match data
-        const aiAnalysis = generateAIAnalysis(match, team1Winner, team2Winner);
+        let status = match.is_live ? '🔴 LIVE' : match.winner_id ? '✅ ENDED' : '📅 UPCOMING';
         
         let html = `
             <div class="modal-header">
                 <h3>${match.team1_name || 'TBD'} vs ${match.team2_name || 'TBD'}</h3>
-                <p class="round-info">${roundNames[match.round - 1]} • ${match.sport}</p>
+                <p class="info">${roundNames[match.round - 1]} • ${match.sport} • ${status}</p>
             </div>
             
             <div class="modal-score">
@@ -130,62 +199,17 @@ async function openMatchDetail(matchId) {
                     <div class="score">${match.team2_score ?? '-'}</div>
                 </div>
             </div>
-            
-            ${match.is_live ? '<p style="text-align:center;color:var(--danger);font-weight:600;">🔴 LIVE NOW</p>' : ''}
         `;
         
-        // Show stats if match has scores
-        if (match.team1_score !== null && match.team2_score !== null) {
-            const total = (match.team1_score || 0) + (match.team2_score || 0) || 1;
-            const team1Pct = Math.round(((match.team1_score || 0) / total) * 100);
-            const team2Pct = 100 - team1Pct;
-            
-            html += `
-                <div class="match-stats">
-                    <h4>📊 Match Statistics</h4>
-                    <div class="stat-bar">
-                        <div class="label">
-                            <span>${match.team1_name}</span>
-                            <span>Score Distribution</span>
-                            <span>${match.team2_name}</span>
-                        </div>
-                        <div class="bar">
-                            <div class="bar-fill team1" style="width: ${team1Pct}%"></div>
-                            <div class="bar-fill team2" style="width: ${team2Pct}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // AI Analysis
-        if (match.winner_id || match.is_live) {
-            html += `
-                <div class="ai-analysis">
-                    <h4>🤖 AI Match Analysis</h4>
-                    <p>${aiAnalysis}</p>
-                </div>
-            `;
-        }
-        
-        // Rating
         if (match.rating) {
-            html += `
-                <div class="match-rating">
-                    <span>Match Rating:</span>
-                    <span class="stars">${'⭐'.repeat(match.rating)}</span>
-                </div>
-            `;
+            html += `<p style="text-align:center;">Match Rating: ${'⭐'.repeat(match.rating)}</p>`;
         }
         
-        // Comment
         if (match.comment) {
-            html += `
-                <div class="match-comment">
-                    <h4>📝 Match Commentary</h4>
-                    <p>${match.comment}</p>
-                </div>
-            `;
+            html += `<div style="background:rgba(0,0,0,0.2);padding:1rem;border-radius:10px;margin-top:1rem;">
+                <h4 style="margin-bottom:0.5rem;">📝 Commentary</h4>
+                <p style="color:var(--text-muted);">${match.comment}</p>
+            </div>`;
         }
         
         document.getElementById('matchModalContent').innerHTML = html;
@@ -195,43 +219,10 @@ async function openMatchDetail(matchId) {
     }
 }
 
-function generateAIAnalysis(match, team1Winner, team2Winner) {
-    if (!match.team1_score && !match.team2_score) {
-        return "Match analysis will be available once the game begins.";
-    }
-    
-    const scoreDiff = Math.abs((match.team1_score || 0) - (match.team2_score || 0));
-    const winner = team1Winner ? match.team1_name : match.team2_name;
-    const loser = team1Winner ? match.team2_name : match.team1_name;
-    const winnerScore = team1Winner ? match.team1_score : match.team2_score;
-    const loserScore = team1Winner ? match.team2_score : match.team1_score;
-    
-    if (match.is_live) {
-        if (scoreDiff === 0) {
-            return `An intense battle is unfolding! Both teams are evenly matched with the score tied at ${match.team1_score}-${match.team2_score}. This could go either way!`;
-        } else if (scoreDiff <= 2) {
-            return `A close contest! ${winner} currently leads ${loser} by a narrow margin. The momentum could shift at any moment.`;
-        } else {
-            return `${winner} is dominating this match with a commanding lead. ${loser} will need to step up their game significantly to turn this around.`;
-        }
-    }
-    
-    if (match.winner_id) {
-        if (scoreDiff <= 1) {
-            return `What a thriller! ${winner} edged out ${loser} in an incredibly close match (${winnerScore}-${loserScore}). Both teams showed exceptional skill and determination. This was a match that could have gone either way until the final moments.`;
-        } else if (scoreDiff <= 3) {
-            return `${winner} secured a well-deserved victory against ${loser} with a final score of ${winnerScore}-${loserScore}. The winning team showed better composure in crucial moments and capitalized on their opportunities effectively.`;
-        } else {
-            return `A dominant performance by ${winner}! They overwhelmed ${loser} with a convincing ${winnerScore}-${loserScore} victory. The winners displayed superior teamwork, strategy, and execution throughout the match.`;
-        }
-    }
-    
-    return "Match analysis will be updated as the game progresses.";
-}
-
 function closeModal() {
     document.getElementById('matchModal').classList.remove('active');
 }
+
 
 // Team Registration
 const sportSelect = document.getElementById('sport');
@@ -248,18 +239,12 @@ function updateTeammateInputs() {
         const total = TEAM_SIZES[sport];
         const needed = total - 1;
         
-        document.getElementById('teammatesHint').textContent = 
-            `Add ${needed} teammates (${total} players total for ${sport})`;
+        document.getElementById('teammatesHint').textContent = `Add ${needed} teammates (${total} total)`;
         
         const container = document.getElementById('teammatesInputs');
         container.innerHTML = '';
-        
         for (let i = 1; i <= needed; i++) {
-            container.innerHTML += `
-                <div class="form-group">
-                    <input type="text" name="teammate${i}" required placeholder="Player ${i + 1} name">
-                </div>
-            `;
+            container.innerHTML += `<div class="form-group"><input type="text" name="teammate${i}" required placeholder="Player ${i + 1}"></div>`;
         }
         
         document.getElementById('teammatesSection').style.display = 'block';
@@ -329,7 +314,7 @@ function adminLogin() {
         showPage('adminPanel');
         loadAdminData();
     } else {
-        showMessage('adminMessage', 'Invalid admin password', 'error');
+        showMessage('adminMessage', 'Invalid password', 'error');
     }
 }
 
@@ -342,23 +327,20 @@ async function loadAdminData() {
 
 async function loadAdminTeams(filter = 'all') {
     try {
-        const res = await fetch('/api/admin/teams');
+        const res = await fetch('/api/teams');
         const teams = await res.json();
-        
         const filtered = filter === 'all' ? teams : teams.filter(t => t.sport === filter);
         
         document.getElementById('adminTeamsList').innerHTML = filtered.length > 0
             ? filtered.map(team => `
                 <div class="team-card-admin ${team.is_champion ? 'champion' : ''}">
                     <h4>${team.team_name} ${team.is_champion ? '🏆' : ''}</h4>
-                    <div class="meta">Grade ${team.grade} • ${team.sport} • Captain: ${team.captain_name}</div>
+                    <div class="meta">Grade ${team.grade} • ${team.sport} • ${team.captain_name}</div>
                     <div class="players">👥 ${team.players.join(', ')}</div>
                 </div>
             `).join('')
-            : '<p>No teams registered yet</p>';
-    } catch (e) {
-        console.error(e);
-    }
+            : '<p>No teams yet</p>';
+    } catch (e) { console.error(e); }
 }
 
 function filterAdminTeams(filter) {
@@ -377,75 +359,42 @@ function showAdminTab(tab) {
 
 async function loadDrawStatus() {
     for (const sport of ['football', 'volleyball']) {
-        const res = await fetch(`/api/admin/teams?sport=${sport}`);
+        const res = await fetch(`/api/teams?sport=${sport}`);
         const teams = await res.json();
         document.getElementById(`${sport}DrawStatus`).textContent = `${teams.length}/16 teams registered`;
-        
-        const drawRes = await fetch(`/api/bracket/${sport}`);
-        const drawData = await drawRes.json();
-        
-        if (drawData.matches && drawData.matches.length > 0) {
-            const r16 = drawData.matches.filter(m => m.round === 1);
-            document.getElementById(`${sport}DrawPreview`).innerHTML = r16.map(m => `
-                <div class="draw-match">
-                    <div>${m.team1_name || 'TBD'}</div>
-                    <div class="vs">VS</div>
-                    <div>${m.team2_name || 'TBD'}</div>
-                </div>
-            `).join('');
-        }
     }
 }
 
 async function performDraw(sport) {
-    if (!confirm(`This will randomize the ${sport} bracket. Continue?`)) return;
-    
+    if (!confirm(`Randomize ${sport} bracket?`)) return;
     try {
         const res = await fetch(`/api/admin/draw/${sport}`, { method: 'POST' });
         const result = await res.json();
-        
         if (result.success) {
             alert('Draw completed! 🎲');
-            loadDrawStatus();
+            loadHomeData();
         } else {
             alert(result.error);
         }
-    } catch (e) {
-        alert('Failed to perform draw');
-    }
+    } catch (e) { alert('Failed'); }
 }
 
 async function loadAdminMatches() {
     try {
         const res = await fetch(`/api/admin/matches?sport=${currentMatchFilter}`);
         const matches = await res.json();
-        
-        const roundNames = ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'];
+        const roundNames = ['R16', 'QF', 'SF', 'Final'];
         
         document.getElementById('matchesList').innerHTML = matches.length > 0
-            ? matches.map(match => `
-                <div class="match-item" onclick="openAdminMatchModal(${match.id})">
-                    <div class="match-header">
-                        <span>${roundNames[match.round - 1]}</span>
-                        ${match.is_live ? '<span class="live-badge">LIVE</span>' : ''}
-                    </div>
-                    <div class="match-teams">
-                        <div class="match-team">
-                            <div class="name">${match.team1_name || 'TBD'}</div>
-                            <div class="score">${match.team1_score ?? '-'}</div>
-                        </div>
-                        <div class="match-vs">VS</div>
-                        <div class="match-team">
-                            <div class="name">${match.team2_name || 'TBD'}</div>
-                            <div class="score">${match.team2_score ?? '-'}</div>
-                        </div>
-                    </div>
+            ? matches.map(m => `
+                <div class="match-item" onclick="openAdminMatch(${m.id})">
+                    <span>${roundNames[m.round - 1]}</span>
+                    ${m.is_live ? '<span class="match-status live">LIVE</span>' : ''}
+                    <strong>${m.team1_name || 'TBD'}</strong> ${m.team1_score ?? '-'} - ${m.team2_score ?? '-'} <strong>${m.team2_name || 'TBD'}</strong>
                 </div>
             `).join('')
-            : '<p>No matches yet. Perform the draw first.</p>';
-    } catch (e) {
-        console.error(e);
-    }
+            : '<p>No matches. Do the draw first.</p>';
+    } catch (e) { console.error(e); }
 }
 
 function filterMatches(sport) {
@@ -458,179 +407,127 @@ function filterMatches(sport) {
 
 async function loadChampionSelects() {
     for (const sport of ['football', 'volleyball']) {
-        const res = await fetch(`/api/admin/teams?sport=${sport}`);
+        const res = await fetch(`/api/teams?sport=${sport}`);
         const teams = await res.json();
-        
-        const select = document.getElementById(`${sport}Champion`);
-        select.innerHTML = '<option value="">Select team</option>' + 
+        document.getElementById(`${sport}Champion`).innerHTML = '<option value="">Select</option>' + 
             teams.map(t => `<option value="${t.id}" ${t.is_champion ? 'selected' : ''}>${t.team_name}</option>`).join('');
     }
 }
 
 async function setChampion(sport) {
     const teamId = document.getElementById(`${sport}Champion`).value;
-    if (!teamId) return alert('Select a team first');
-    
+    if (!teamId) return;
     try {
-        const res = await fetch('/api/admin/champion', {
+        await fetch('/api/admin/champion', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ teamId: parseInt(teamId), sport })
         });
-        
-        if ((await res.json()).success) {
-            alert('Champion set! 🏆');
-            loadAdminTeams();
-        }
-    } catch (e) {
-        alert('Failed to set champion');
-    }
+        alert('Champion set! 🏆');
+        loadAdminTeams();
+    } catch (e) { alert('Failed'); }
 }
 
 // Admin Match Modal
 let currentMatchId = null;
 let currentRating = 0;
 
-async function openAdminMatchModal(matchId) {
+async function openAdminMatch(matchId) {
     currentMatchId = matchId;
-    
     try {
         const res = await fetch(`/api/match/${matchId}`);
         const match = await res.json();
-        
         currentRating = match.rating || 0;
         
         if (!match.team1_id || !match.team2_id) {
-            alert('This match has no teams assigned yet.');
+            alert('No teams assigned yet');
             return;
         }
         
-        const html = `
+        document.getElementById('matchModalContent').innerHTML = `
             <div class="modal-header">
                 <h3>Edit Match</h3>
-                <p class="round-info">Round ${match.round} • ${match.sport}</p>
+                <p class="info">Round ${match.round} • ${match.sport}</p>
             </div>
-            
             <div class="score-editor">
                 <div class="score-team">
                     <div class="name">${match.team1_name}</div>
                     <input type="number" class="score-input" id="score1" value="${match.team1_score || 0}" min="0">
                 </div>
-                <div class="match-vs">VS</div>
+                <span>VS</span>
                 <div class="score-team">
                     <div class="name">${match.team2_name}</div>
                     <input type="number" class="score-input" id="score2" value="${match.team2_score || 0}" min="0">
                 </div>
             </div>
-            
             <div class="form-group">
-                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
-                    <input type="checkbox" id="isLive" ${match.is_live ? 'checked' : ''}> 
-                    🔴 Match is LIVE
-                </label>
+                <label><input type="checkbox" id="isLive" ${match.is_live ? 'checked' : ''}> 🔴 Match is LIVE</label>
             </div>
-            
             <div class="rating-section">
-                <h4>Match Rating</h4>
-                <div class="stars-input" id="starsContainer">
-                    ${[1,2,3,4,5].map(i => `
-                        <span class="star ${i <= currentRating ? 'active' : ''}" onclick="setRating(${i})">⭐</span>
-                    `).join('')}
-                </div>
+                <h4>Rating</h4>
+                <div class="stars-input">${[1,2,3,4,5].map(i => `<span class="star ${i <= currentRating ? 'active' : ''}" onclick="setRating(${i})">⭐</span>`).join('')}</div>
             </div>
-            
             <div class="comment-section">
-                <h4>Match Commentary</h4>
-                <textarea id="matchComment" placeholder="Add commentary about the match...">${match.comment || ''}</textarea>
+                <h4>Commentary</h4>
+                <textarea id="matchComment">${match.comment || ''}</textarea>
             </div>
-            
-            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                <button class="btn btn-primary" onclick="saveMatch()">💾 Save Changes</button>
-                <button class="btn" style="background:var(--success);" onclick="finishMatch()">✅ Finish Match</button>
+            <div style="display:flex;gap:1rem;margin-top:1rem;">
+                <button class="btn btn-primary" onclick="saveMatch()">💾 Save</button>
+                <button class="btn" style="background:var(--success);" onclick="finishMatch()">✅ Finish</button>
             </div>
         `;
-        
-        document.getElementById('matchModalContent').innerHTML = html;
         document.getElementById('matchModal').classList.add('active');
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) { console.error(e); }
 }
 
-function setRating(rating) {
-    currentRating = rating;
-    document.querySelectorAll('#starsContainer .star').forEach((star, idx) => {
-        star.classList.toggle('active', idx < rating);
-    });
+function setRating(r) {
+    currentRating = r;
+    document.querySelectorAll('.stars-input .star').forEach((s, i) => s.classList.toggle('active', i < r));
 }
 
 async function saveMatch() {
-    const data = {
-        team1_score: parseInt(document.getElementById('score1').value) || 0,
-        team2_score: parseInt(document.getElementById('score2').value) || 0,
-        is_live: document.getElementById('isLive').checked,
-        rating: currentRating,
-        comment: document.getElementById('matchComment').value
-    };
-    
     try {
-        const res = await fetch(`/api/admin/match/${currentMatchId}`, {
+        await fetch(`/api/admin/match/${currentMatchId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        
-        if ((await res.json()).success) {
-            alert('Match updated!');
-            loadAdminMatches();
-            loadHomeData();
-        }
-    } catch (e) {
-        alert('Failed to save');
-    }
-}
-
-async function finishMatch() {
-    const score1 = parseInt(document.getElementById('score1').value) || 0;
-    const score2 = parseInt(document.getElementById('score2').value) || 0;
-    
-    if (score1 === score2) {
-        alert('Match cannot end in a draw!');
-        return;
-    }
-    
-    if (!confirm('Finish this match and advance the winner?')) return;
-    
-    try {
-        const res = await fetch(`/api/admin/match/${currentMatchId}/finish`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                team1_score: score1,
-                team2_score: score2,
+                team1_score: parseInt(document.getElementById('score1').value) || 0,
+                team2_score: parseInt(document.getElementById('score2').value) || 0,
+                is_live: document.getElementById('isLive').checked,
                 rating: currentRating,
                 comment: document.getElementById('matchComment').value
             })
         });
-        
-        if ((await res.json()).success) {
-            alert('Match finished! Winner advances.');
-            closeModal();
-            loadAdminMatches();
-            loadDrawStatus();
-            loadHomeData();
-        }
-    } catch (e) {
-        alert('Failed to finish match');
-    }
+        alert('Saved!');
+        loadAdminMatches();
+        loadHomeData();
+    } catch (e) { alert('Failed'); }
 }
 
-// Utility
-function showMessage(elementId, message, type) {
-    const el = document.getElementById(elementId);
-    el.textContent = message;
+async function finishMatch() {
+    const s1 = parseInt(document.getElementById('score1').value) || 0;
+    const s2 = parseInt(document.getElementById('score2').value) || 0;
+    if (s1 === s2) { alert('Cannot end in draw!'); return; }
+    if (!confirm('Finish match?')) return;
+    
+    try {
+        await fetch(`/api/admin/match/${currentMatchId}/finish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ team1_score: s1, team2_score: s2, rating: currentRating, comment: document.getElementById('matchComment').value })
+        });
+        alert('Match finished!');
+        closeModal();
+        loadAdminMatches();
+        loadHomeData();
+    } catch (e) { alert('Failed'); }
+}
+
+function showMessage(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
     el.className = 'message ' + type;
 }
 
-// Initialize
+// Init
 loadHomeData();
