@@ -1,14 +1,16 @@
 {
-  "rewrites": [
-    { "source": "/api/admin/teams", "destination": "/api/teams" },
-    { "source": "/api/admin/matches", "destination": "/api/admin/matches" },
-    { "source": "/api/admin/champion", "destination": "/api/admin/champion" },
-    { "source": "/api/admin/draw/:sport", "destination": "/api/admin/draw/:sport" },
-    { "source": "/api/admin/match/:id/finish", "destination": "/api/admin/match/:id/finish" },
-    { "source": "/api/admin/match/:id", "destination": "/api/admin/match/:id" },
-    { "source": "/api/bracket/:sport", "destination": "/api/bracket/:sport" },
-    { "source": "/api/match/:id", "destination": "/api/match/:id" },
-    { "source": "/api/teams", "destination": "/api/teams" },
-    { "source": "/api/stats", "destination": "/api/stats" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/api/admin/teams", "dest": "/api/teams.js" },
+    { "src": "/api/admin/matches", "dest": "/api/admin/matches.js" },
+    { "src": "/api/admin/champion", "dest": "/api/admin/champion.js" },
+    { "src": "/api/admin/draw/(.+)", "dest": "/api/admin/draw/[sport].js?sport=$1" },
+    { "src": "/api/admin/match/(.+)/finish", "dest": "/api/admin/match/[id]/finish.js?id=$1" },
+    { "src": "/api/admin/match/(.+)", "dest": "/api/admin/match/[id].js?id=$1" },
+    { "src": "/api/bracket/(.+)", "dest": "/api/bracket/[sport].js?sport=$1" },
+    { "src": "/api/match/(.+)", "dest": "/api/match/[id].js?id=$1" },
+    { "src": "/api/teams", "dest": "/api/teams.js" },
+    { "src": "/api/stats", "dest": "/api/stats.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
