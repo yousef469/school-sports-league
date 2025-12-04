@@ -8,6 +8,7 @@
     { "src": "/api/admin/match/(.+)/finish", "dest": "/api/admin/match/[id]/finish.js?id=$1" },
     { "src": "/api/admin/match/(.+)", "dest": "/api/admin/match/[id].js?id=$1" },
     { "src": "/api/bracket/(.+)", "dest": "/api/bracket/[sport].js?sport=$1" },
+    { "src": "/api/match/(.+)/comments", "dest": "/api/match/[id]/comments.js?id=$1" },
     { "src": "/api/match/(.+)", "dest": "/api/match/[id].js?id=$1" },
     { "src": "/api/teams", "dest": "/api/teams.js" },
     { "src": "/api/stats", "dest": "/api/stats.js" },

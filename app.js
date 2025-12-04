@@ -250,36 +250,137 @@ async function loadTeamsView() {
     } catch (e) { console.error(e); }
 }
 
-// Match Detail
+// Match Detail with Viewer Comments
+let currentViewMatchId = null;
+
 async function openMatchDetail(matchId) {
+    currentViewMatchId = matchId;
     try {
-        const m = await fetch(`/api/match/${matchId}`).then(r => r.json());
+        const [matchRes, commentsRes] = await Promise.all([
+            fetch(`/api/match/${matchId}`),
+            fetch(`/api/match/${matchId}/comments`)
+        ]);
+        const m = await matchRes.json();
+        const commentsData = await commentsRes.json();
+        const comments = commentsData.comments || [];
+        
         const roundNames = ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'];
         const t1Win = m.winner_id === m.team1_id;
         const t2Win = m.winner_id === m.team2_id;
-        const status = m.is_live ? '🔴 LIVE' : m.winner_id ? 'ENDED' : 'UPCOMING';
+        const status = m.is_live ? '🔴 LIVE' : m.winner_id ? '✅ ENDED' : '📅 UPCOMING';
+        const statusClass = m.is_live ? 'live' : m.winner_id ? 'ended' : 'upcoming';
+        
+        // Count predictions
+        const team1Votes = comments.filter(c => c.prediction === 'team1').length;
+        const team2Votes = comments.filter(c => c.prediction === 'team2').length;
+        const totalVotes = team1Votes + team2Votes;
+        const team1Pct = totalVotes > 0 ? Math.round((team1Votes / totalVotes) * 100) : 50;
+        const team2Pct = 100 - team1Pct;
         
         document.getElementById('matchModalContent').innerHTML = `
             <div class="modal-header">
                 <h3>${m.team1_name || 'TBD'} vs ${m.team2_name || 'TBD'}</h3>
-                <p class="info">${roundNames[m.round - 1]} • ${m.sport} • ${status}</p>
+                <p class="info">${roundNames[m.round - 1]} • ${m.sport}</p>
+                <span class="status-badge ${statusClass}">${status}</span>
             </div>
+            
             <div class="modal-score">
                 <div class="modal-team ${t1Win ? 'winner' : ''}">
                     <div class="name">${m.team1_name || 'TBD'}</div>
                     <div class="score">${m.team1_score ?? '-'}</div>
                 </div>
-                <span>-</span>
+                <span style="color:var(--text-muted);">vs</span>
                 <div class="modal-team ${t2Win ? 'winner' : ''}">
                     <div class="name">${m.team2_name || 'TBD'}</div>
                     <div class="score">${m.team2_score ?? '-'}</div>
                 </div>
             </div>
-            ${m.rating ? `<p style="text-align:center;margin-top:1rem;">${'⭐'.repeat(m.rating)}</p>` : ''}
-            ${m.comment ? `<div style="background:rgba(0,0,0,0.2);padding:0.75rem;border-radius:8px;margin-top:1rem;"><p style="color:var(--text-muted);font-size:0.85rem;">${m.comment}</p></div>` : ''}
+            
+            ${m.game_time ? `<p style="text-align:center;color:var(--accent);">⏱️ ${m.game_time}</p>` : ''}
+            ${m.rating ? `<p style="text-align:center;margin-top:0.5rem;">${'⭐'.repeat(m.rating)}</p>` : ''}
+            ${m.comment ? `<div class="admin-comment"><strong>📝 Match Report:</strong> ${m.comment}</div>` : ''}
+            
+            ${!m.winner_id && m.team1_id && m.team2_id ? `
+            <div class="prediction-section">
+                <h4>🔮 Who will win?</h4>
+                <div class="prediction-bar">
+                    <div class="pred-fill team1" style="width:${team1Pct}%">${team1Pct}%</div>
+                    <div class="pred-fill team2" style="width:${team2Pct}%">${team2Pct}%</div>
+                </div>
+                <div class="prediction-labels">
+                    <span>${m.team1_name}</span>
+                    <span>${m.team2_name}</span>
+                </div>
+                <div class="prediction-buttons">
+                    <button class="pred-btn" onclick="submitPrediction('team1')">${m.team1_name} wins</button>
+                    <button class="pred-btn" onclick="submitPrediction('team2')">${m.team2_name} wins</button>
+                </div>
+            </div>
+            ` : ''}
+            
+            <div class="comments-section">
+                <h4>💬 Comments (${comments.length})</h4>
+                <div class="comment-form">
+                    <input type="text" id="viewerName" placeholder="Your name" maxlength="30">
+                    <textarea id="viewerComment" placeholder="Share your thoughts..." maxlength="200"></textarea>
+                    <button class="btn btn-primary btn-small" onclick="submitComment()">Post Comment</button>
+                </div>
+                <div class="comments-list" id="commentsList">
+                    ${comments.length > 0 ? comments.map(c => `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <strong>${c.name}</strong>
+                                ${c.prediction ? `<span class="pred-tag">${c.prediction === 'team1' ? m.team1_name : m.team2_name} wins</span>` : ''}
+                                <span class="comment-time">${formatTime(c.created_at)}</span>
+                            </div>
+                            <p>${c.text}</p>
+                        </div>
+                    `).join('') : '<p class="no-comments">No comments yet. Be the first!</p>'}
+                </div>
+            </div>
         `;
         document.getElementById('matchModal').classList.add('active');
     } catch (e) { console.error(e); }
+}
+
+function formatTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000 / 60);
+    if (diff < 1) return 'Just now';
+    if (diff < 60) return `${diff}m ago`;
+    if (diff < 1440) return `${Math.floor(diff/60)}h ago`;
+    return date.toLocaleDateString();
+}
+
+let currentPrediction = null;
+
+function submitPrediction(team) {
+    currentPrediction = team;
+    document.querySelectorAll('.pred-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+async function submitComment() {
+    const name = document.getElementById('viewerName').value.trim();
+    const text = document.getElementById('viewerComment').value.trim();
+    
+    if (!name) { alert('Please enter your name'); return; }
+    if (!text && !currentPrediction) { alert('Please write a comment or make a prediction'); return; }
+    
+    try {
+        await fetch(`/api/match/${currentViewMatchId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, text: text || '', prediction: currentPrediction })
+        });
+        
+        currentPrediction = null;
+        openMatchDetail(currentViewMatchId); // Refresh
+    } catch (e) {
+        alert('Failed to post comment');
+    }
 }
 
 function closeModal() { document.getElementById('matchModal').classList.remove('active'); }

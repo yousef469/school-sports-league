@@ -168,6 +168,44 @@ app.get('/api/match/:id', async (req, res) => {
     }
 });
 
+// Get match comments
+app.get('/api/match/:id/comments', async (req, res) => {
+    try {
+        const { data } = await supabase
+            .from('match_comments')
+            .select('*')
+            .eq('match_id', req.params.id)
+            .order('created_at', { ascending: false })
+            .limit(50);
+        
+        res.json({ comments: data || [] });
+    } catch (e) {
+        res.json({ comments: [] });
+    }
+});
+
+// Post match comment
+app.post('/api/match/:id/comments', async (req, res) => {
+    const { name, text, prediction } = req.body;
+    
+    if (!name) {
+        return res.status(400).json({ error: 'Name required' });
+    }
+    
+    try {
+        await supabase.from('match_comments').insert({
+            match_id: parseInt(req.params.id),
+            name,
+            text: text || '',
+            prediction: prediction || null
+        });
+        
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to post comment' });
+    }
+});
+
 // ADMIN ENDPOINTS
 
 // Get all teams (admin)
