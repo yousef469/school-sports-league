@@ -4,23 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Sports League</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loader">
+            <div class="loader-icon">🏆</div>
+            <div class="loader-text">School Sports League</div>
+            <div class="loader-bar"><div class="loader-progress"></div></div>
+        </div>
+    </div>
+
+    <div class="app" style="display:none;">
         <!-- Header -->
         <header class="main-header">
             <div class="header-left">
                 <div class="logo">🏆 School Sports League</div>
                 <nav class="main-nav">
-                    <button class="main-nav-btn active" onclick="showSection('matches')">Matches</button>
-                    <button class="main-nav-btn" onclick="showSection('table')">Table</button>
-                    <button class="main-nav-btn" onclick="showSection('teams')">Teams</button>
+                    <button class="main-nav-btn active" onclick="showSection('matches')">⚽ Matches</button>
+                    <button class="main-nav-btn" onclick="showSection('table')">📊 Table</button>
+                    <button class="main-nav-btn" onclick="showSection('teams')">👥 Teams</button>
                 </nav>
             </div>
             <nav class="header-nav">
-                <button class="nav-btn" onclick="showPage('joinPage')">📝 Join</button>
+                <button class="nav-btn join-btn" onclick="showPage('joinPage')">📝 Join</button>
                 <button class="nav-btn admin-btn" onclick="showPage('adminLogin')">🔐 Admin</button>
             </nav>
         </header>
@@ -31,15 +41,15 @@
             <div id="matchesSection" class="main-section active">
                 <div class="filter-bar">
                     <div class="sport-pills">
-                        <button class="sport-pill active" onclick="filterSport('all')">All</button>
+                        <button class="sport-pill active" onclick="filterSport('all')">🌟 All</button>
                         <button class="sport-pill" onclick="filterSport('football')">⚽ Football</button>
                         <button class="sport-pill" onclick="filterSport('volleyball')">🏐 Volleyball</button>
                     </div>
                     <div class="status-filters">
                         <button class="status-btn active" onclick="filterStatus('all')">All</button>
-                        <button class="status-btn" onclick="filterStatus('live')">🔴 Live</button>
-                        <button class="status-btn" onclick="filterStatus('upcoming')">Upcoming</button>
-                        <button class="status-btn" onclick="filterStatus('ended')">Ended</button>
+                        <button class="status-btn live" onclick="filterStatus('live')">🔴 Live</button>
+                        <button class="status-btn" onclick="filterStatus('upcoming')">📅 Upcoming</button>
+                        <button class="status-btn" onclick="filterStatus('ended')">✅ Ended</button>
                     </div>
                 </div>
                 <div id="matchesList" class="matches-list"></div>
@@ -70,7 +80,7 @@
         <div id="joinPage" class="page">
             <button class="back-btn" onclick="showPage('homePage')">← Back</button>
             <div class="container">
-                <div class="card">
+                <div class="card gradient-card">
                     <h2>📝 Register Your Team</h2>
                     <form id="teamForm">
                         <div class="form-row">
@@ -112,7 +122,7 @@
                             <input type="password" id="teamPassword" placeholder="Create password">
                             <div class="warning-box">⚠️ DON'T SHARE OR YOU'LL BE ELIMINATED!</div>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-full" id="submitBtn" style="display:none;">Create Team</button>
+                        <button type="submit" class="btn btn-primary btn-full" id="submitBtn" style="display:none;">🚀 Create Team</button>
                     </form>
                     <div id="createMessage" class="message"></div>
                 </div>
@@ -123,8 +133,8 @@
         <div id="adminLogin" class="page">
             <button class="back-btn" onclick="showPage('homePage')">← Back</button>
             <div class="container small">
-                <div class="card">
-                    <h2>🔐 Admin</h2>
+                <div class="card gradient-card">
+                    <h2>🔐 Admin Login</h2>
                     <div class="form-group">
                         <input type="password" id="adminPassword" placeholder="Password">
                     </div>

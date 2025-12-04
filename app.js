@@ -8,6 +8,14 @@ let currentTableSport = 'football';
 let currentMatchFilter = 'football';
 let currentTeamsSport = 'football';
 
+// Loading Screen
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.querySelector('.app').style.display = 'block';
+        loadHomeData();
+    }, 2000);
+});
+
 // Page & Section Navigation
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -89,8 +97,8 @@ function renderMatchesList() {
         const team1Winner = m.winner_id === m.team1_id;
         const team2Winner = m.winner_id === m.team2_id;
         
-        let statusClass = isLive ? 'live' : isEnded ? 'ended' : '';
-        let timeText = isLive ? 'LIVE' : isEnded ? 'FT' : 'Soon';
+        let statusClass = isLive ? 'live' : isEnded ? 'ended' : m.is_suspended ? 'suspended' : '';
+        let timeText = isLive ? (m.game_time || 'LIVE') : isEnded ? 'FT' : m.is_suspended ? 'SUSP' : 'Soon';
         
         return `
             <div class="match-row ${statusClass}" onclick="openMatchDetail(${m.id})">
@@ -407,38 +415,95 @@ async function setChampion(sport) {
 // Admin Match Modal
 let currentMatchId = null, currentRating = 0;
 
+let currentMatchStatus = 'upcoming';
+
 async function openAdminMatch(matchId) {
     currentMatchId = matchId;
     const m = await fetch(`/api/match/${matchId}`).then(r => r.json());
     currentRating = m.rating || 0;
-    if (!m.team1_id || !m.team2_id) { alert('No teams yet'); return; }
+    currentMatchStatus = m.is_live ? 'live' : m.winner_id ? 'ended' : 'upcoming';
+    
+    if (!m.team1_id || !m.team2_id) { alert('No teams assigned yet'); return; }
+    
+    const roundNames = ['Round of 16', 'Quarter Finals', 'Semi Finals', 'Final'];
     
     document.getElementById('matchModalContent').innerHTML = `
-        <div class="modal-header"><h3>Edit Match</h3><p class="info">R${m.round} • ${m.sport}</p></div>
-        <div class="score-editor">
-            <div class="score-team"><div class="name">${m.team1_name}</div><input type="number" class="score-input" id="score1" value="${m.team1_score||0}" min="0"></div>
-            <span>-</span>
-            <div class="score-team"><div class="name">${m.team2_name}</div><input type="number" class="score-input" id="score2" value="${m.team2_score||0}" min="0"></div>
+        <div class="modal-header">
+            <h3>${m.team1_name} vs ${m.team2_name}</h3>
+            <p class="info">${roundNames[m.round-1]} • ${m.sport}</p>
         </div>
-        <div class="form-group"><label><input type="checkbox" id="isLive" ${m.is_live?'checked':''}> 🔴 LIVE</label></div>
-        <div class="rating-section"><h4>Rating</h4><div class="stars-input">${[1,2,3,4,5].map(i=>`<span class="star ${i<=currentRating?'active':''}" onclick="setRating(${i})">⭐</span>`).join('')}</div></div>
-        <div class="comment-section"><h4>Comment</h4><textarea id="matchComment">${m.comment||''}</textarea></div>
-        <div style="display:flex;gap:0.5rem;margin-top:1rem;">
-            <button class="btn btn-primary" onclick="saveMatch()">💾 Save</button>
-            <button class="btn" style="background:var(--success);" onclick="finishMatch()">✅ Finish</button>
+        
+        <div class="match-controls">
+            <h4>⚡ Match Status</h4>
+            <div class="status-buttons">
+                <button class="status-button ${currentMatchStatus === 'upcoming' ? 'active' : ''}" onclick="setMatchStatus('upcoming')">📅 Upcoming</button>
+                <button class="status-button live-btn ${currentMatchStatus === 'live' ? 'active' : ''}" onclick="setMatchStatus('live')">🔴 Live</button>
+                <button class="status-button ${currentMatchStatus === 'suspended' ? 'active' : ''}" onclick="setMatchStatus('suspended')">⏸️ Suspended</button>
+                <button class="status-button ended-btn ${currentMatchStatus === 'ended' ? 'active' : ''}" onclick="setMatchStatus('ended')">✅ Ended</button>
+            </div>
+            <div class="time-input-group">
+                <label>Game Time:</label>
+                <input type="text" id="gameTime" value="${m.game_time || ''}" placeholder="e.g. 45'">
+            </div>
+        </div>
+        
+        <div class="score-editor">
+            <div class="score-team">
+                <div class="name">${m.team1_name}</div>
+                <input type="number" class="score-input" id="score1" value="${m.team1_score || 0}" min="0">
+            </div>
+            <span style="font-size:1.5rem;color:var(--text-muted);">-</span>
+            <div class="score-team">
+                <div class="name">${m.team2_name}</div>
+                <input type="number" class="score-input" id="score2" value="${m.team2_score || 0}" min="0">
+            </div>
+        </div>
+        
+        <div class="rating-section">
+            <h4>⭐ Match Rating</h4>
+            <div class="stars-input">${[1,2,3,4,5].map(i => `<span class="star ${i <= currentRating ? 'active' : ''}" onclick="setRating(${i})">⭐</span>`).join('')}</div>
+        </div>
+        
+        <div class="comment-section">
+            <h4>📝 Commentary</h4>
+            <textarea id="matchComment" placeholder="Add match commentary...">${m.comment || ''}</textarea>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="saveMatch()">💾 Save Changes</button>
+            <button class="btn btn-success" onclick="finishMatch()">✅ Finish Match</button>
         </div>
     `;
     document.getElementById('matchModal').classList.add('active');
 }
 
+function setMatchStatus(status) {
+    currentMatchStatus = status;
+    document.querySelectorAll('.status-button').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.status-button[onclick*="${status}"]`).classList.add('active');
+}
+
 function setRating(r) { currentRating = r; document.querySelectorAll('.stars-input .star').forEach((s,i) => s.classList.toggle('active', i < r)); }
 
 async function saveMatch() {
+    const data = {
+        team1_score: +document.getElementById('score1').value,
+        team2_score: +document.getElementById('score2').value,
+        is_live: currentMatchStatus === 'live',
+        is_suspended: currentMatchStatus === 'suspended',
+        game_time: document.getElementById('gameTime').value,
+        rating: currentRating,
+        comment: document.getElementById('matchComment').value
+    };
+    
     await fetch(`/api/admin/match/${currentMatchId}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ team1_score: +document.getElementById('score1').value, team2_score: +document.getElementById('score2').value, is_live: document.getElementById('isLive').checked, rating: currentRating, comment: document.getElementById('matchComment').value })
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
     });
-    alert('Saved!'); loadAdminMatches(); loadHomeData();
+    alert('Match updated! ✅');
+    loadAdminMatches();
+    loadHomeData();
 }
 
 async function finishMatch() {

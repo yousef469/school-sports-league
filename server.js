@@ -277,14 +277,22 @@ app.get('/api/admin/matches', async (req, res) => {
     }
 });
 
-// Update match (live score, rating, comment)
+// Update match (live score, rating, comment, status, game time)
 app.put('/api/admin/match/:id', async (req, res) => {
-    const { team1_score, team2_score, is_live, rating, comment } = req.body;
+    const { team1_score, team2_score, is_live, is_suspended, game_time, rating, comment } = req.body;
     
     try {
         const { error } = await supabase
             .from('matches')
-            .update({ team1_score, team2_score, is_live, rating, comment })
+            .update({ 
+                team1_score, 
+                team2_score, 
+                is_live, 
+                is_suspended: is_suspended || false,
+                game_time: game_time || null,
+                rating, 
+                comment 
+            })
             .eq('id', req.params.id);
         
         if (error) throw error;
