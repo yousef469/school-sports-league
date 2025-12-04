@@ -318,7 +318,7 @@ tches List */
 }
 
 .bracket-container {
-    padding: 2rem;
+    padding: 1.5rem;
     overflow-x: auto;
     background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
     min-height: calc(100vh - 150px);
@@ -330,8 +330,8 @@ tches List */
     align-items: center;
     justify-content: center;
     gap: 0;
-    min-width: max-content;
-    padding: 2rem;
+    padding: 1rem;
+    max-width: 100%;
 }
 
 .bracket-side { display: flex; align-items: center; }
@@ -341,12 +341,13 @@ tches List */
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    padding: 0 0.75rem;
+    padding: 0 0.4rem;
+    position: relative;
 }
 
-.bracket-column.r16 { gap: 0.75rem; min-height: 520px; }
-.bracket-column.qf { gap: 4.5rem; min-height: 520px; }
-.bracket-column.sf { gap: 12rem; min-height: 520px; }
+.bracket-column.r16 { gap: 0.5rem; min-height: 450px; }
+.bracket-column.qf { gap: 3.5rem; min-height: 450px; }
+.bracket-column.sf { gap: 10rem; min-height: 450px; }
 
 .round-label {
     text-align: center;
@@ -365,13 +366,14 @@ tches List */
 
 .bracket-match-card {
     background: white;
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
-    width: 160px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 130px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     cursor: pointer;
     transition: all 0.3s;
     border: 2px solid #e2e8f0;
+    position: relative;
 }
 .bracket-match-card:hover { 
     transform: scale(1.05) translateY(-3px);
@@ -390,11 +392,11 @@ tches List */
 .bracket-team-row {
     display: flex;
     align-items: center;
-    padding: 0.6rem 0.75rem;
+    padding: 0.45rem 0.5rem;
     background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
     color: #1e293b;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
 }
 .bracket-team-row:last-child { border-bottom: none; }
 .bracket-team-row.winner { 
@@ -471,10 +473,10 @@ tches List */
 
 .final-match {
     background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    border-radius: 12px;
-    padding: 4px;
-    width: 180px;
-    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
+    border-radius: 10px;
+    padding: 3px;
+    width: 145px;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
 }
 .final-match .bracket-match-card {
     width: 100%;
@@ -1021,24 +1023,42 @@ Teams Section */
     .table-header, .teams-header { padding: 0.85rem; flex-wrap: wrap; }
     .table-sport-btn, .teams-sport-btn { padding: 0.6rem 1.25rem; font-size: 0.9rem; }
     
-    .bracket-container { padding: 1rem 0.5rem; }
-    .world-cup-bracket { flex-direction: column; gap: 2rem; padding: 1rem; }
-    .bracket-side { flex-direction: column !important; gap: 1.5rem; }
+    .bracket-container { padding: 0.75rem; }
+    .world-cup-bracket { 
+        flex-direction: column; 
+        gap: 1.5rem; 
+        padding: 0.5rem;
+    }
+    .bracket-side { 
+        flex-direction: column !important; 
+        gap: 1rem;
+        width: 100%;
+    }
+    .bracket-side.right { flex-direction: column !important; }
     .bracket-column {
         flex-direction: row !important;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 0.6rem !important;
+        gap: 0.5rem !important;
         min-height: auto !important;
+        padding: 0;
     }
-    .round-label { position: relative; top: 0; left: 0; transform: none; width: 100%; margin-bottom: 0.5rem; }
-    .bracket-match-card { width: 140px; }
+    .round-label { 
+        position: relative; 
+        top: 0; 
+        left: 0; 
+        transform: none; 
+        width: 100%; 
+        margin-bottom: 0.4rem;
+        text-align: center;
+    }
+    .bracket-match-card { width: 45%; max-width: 140px; }
     .bracket-match-card::after { display: none; }
-    .bracket-team-row { font-size: 0.75rem; padding: 0.5rem 0.6rem; }
-    .final-section { order: -1; padding: 1rem; }
-    .final-title { font-size: 0.95rem; }
-    .trophy-icon { font-size: 2.5rem; }
-    .final-match { width: 160px; }
+    .bracket-team-row { font-size: 0.65rem; padding: 0.4rem 0.45rem; }
+    .final-section { order: -1; padding: 0.75rem; }
+    .final-title { font-size: 0.9rem; }
+    .trophy-icon { font-size: 2rem; }
+    .final-match { width: 140px; }
     
     .teams-grid-view { padding: 0.85rem; grid-template-columns: 1fr; }
     .team-card-view { padding: 1.25rem; }

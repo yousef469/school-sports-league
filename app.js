@@ -24,6 +24,11 @@ function showPage(pageId) {
 }
 
 function showSection(section) {
+    // First go to home page if not already there
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('homePage').classList.add('active');
+    
+    // Then show the section
     document.querySelectorAll('.main-nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`.main-nav-btn[onclick*="${section}"]`).classList.add('active');
     document.querySelectorAll('.main-section').forEach(s => s.classList.remove('active'));
