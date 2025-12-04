@@ -126,14 +126,18 @@ function renderBracket() {
     const container = document.getElementById('bracketView');
     
     if (!matches || matches.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:white;padding:3rem;">Draw not made yet</div>';
+        container.innerHTML = `
+            <div class="no-bracket">
+                <div class="no-bracket-icon">🎱</div>
+                <div>Draw not made yet</div>
+                <div style="font-size:0.85rem;opacity:0.7;margin-top:0.5rem;">Admin needs to perform the draw first</div>
+            </div>`;
         return;
     }
     
     const rounds = { 1: [], 2: [], 3: [], 4: [] };
     matches.forEach(m => { if (rounds[m.round]) rounds[m.round].push(m); });
     
-    // Split R16 into left (0-3) and right (4-7)
     const r16Left = rounds[1].slice(0, 4);
     const r16Right = rounds[1].slice(4, 8);
     const qfLeft = rounds[2].slice(0, 2);
@@ -144,24 +148,46 @@ function renderBracket() {
     
     container.innerHTML = `
         <div class="bracket-side left">
-            <div class="bracket-column r16">${r16Left.map(m => renderBracketMatch(m)).join('')}</div>
-            <div class="bracket-column qf">${qfLeft.map(m => renderBracketMatch(m)).join('')}</div>
-            <div class="bracket-column sf">${sfLeft.map(m => renderBracketMatch(m)).join('')}</div>
+            <div class="bracket-column r16">
+                <span class="round-label">Round of 16</span>
+                ${r16Left.map(m => renderBracketMatch(m)).join('')}
+            </div>
+            <div class="bracket-column qf">
+                <span class="round-label">Quarter Finals</span>
+                ${qfLeft.map(m => renderBracketMatch(m)).join('')}
+            </div>
+            <div class="bracket-column sf">
+                <span class="round-label">Semi Final</span>
+                ${sfLeft.map(m => renderBracketMatch(m)).join('')}
+            </div>
         </div>
         <div class="final-section">
+            <div class="trophy-icon">🏆</div>
             <div class="final-title">FINAL</div>
-            ${final ? `<div class="final-match">${renderBracketMatchInner(final)}</div>` : '<div class="bracket-match-card"><div class="bracket-team-row tbd">TBD</div><div class="bracket-team-row tbd">TBD</div></div>'}
+            <div class="final-match">
+                ${final ? renderBracketMatch(final, true) : '<div class="bracket-match-card"><div class="bracket-team-row tbd"><span class="team-name">TBD</span><span class="team-score">-</span></div><div class="bracket-team-row tbd"><span class="team-name">TBD</span><span class="team-score">-</span></div></div>'}
+            </div>
         </div>
         <div class="bracket-side right">
-            <div class="bracket-column sf">${sfRight.map(m => renderBracketMatch(m)).join('')}</div>
-            <div class="bracket-column qf">${qfRight.map(m => renderBracketMatch(m)).join('')}</div>
-            <div class="bracket-column r16">${r16Right.map(m => renderBracketMatch(m)).join('')}</div>
+            <div class="bracket-column sf">
+                <span class="round-label">Semi Final</span>
+                ${sfRight.map(m => renderBracketMatch(m)).join('')}
+            </div>
+            <div class="bracket-column qf">
+                <span class="round-label">Quarter Finals</span>
+                ${qfRight.map(m => renderBracketMatch(m)).join('')}
+            </div>
+            <div class="bracket-column r16">
+                <span class="round-label">Round of 16</span>
+                ${r16Right.map(m => renderBracketMatch(m)).join('')}
+            </div>
         </div>
     `;
 }
 
-function renderBracketMatch(m) {
-    return `<div class="bracket-match-card" onclick="openMatchDetail(${m.id})">${renderBracketMatchInner(m)}</div>`;
+function renderBracketMatch(m, isFinal = false) {
+    const liveClass = m.is_live ? 'live' : '';
+    return `<div class="bracket-match-card ${liveClass}" onclick="openMatchDetail(${m.id})">${renderBracketMatchInner(m)}</div>`;
 }
 
 function renderBracketMatchInner(m) {
