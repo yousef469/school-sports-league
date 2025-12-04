@@ -10,8 +10,15 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const SLOTS_PER_GRADE = 5;
 const TOTAL_SLOTS = 16;
 
+const path = require('path');
+
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(__dirname));
+
+// Serve index.html for root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Stats for landing page
 app.get('/api/stats', async (req, res) => {

@@ -1,6 +1,28 @@
 {
-  "rewrites": [
-    { "source": "/api/admin/teams", "destination": "/api/teams" },
-    { "source": "/(.*)", "destination": "/" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/api/admin/teams", "dest": "/api/teams.js" },
+    { "src": "/api/admin/matches", "dest": "/api/admin/matches.js" },
+    { "src": "/api/admin/champion", "dest": "/api/admin/champion.js" },
+    { "src": "/api/admin/draw/(.*)", "dest": "/api/admin/draw/[sport].js?sport=$1" },
+    { "src": "/api/admin/match/([^/]+)/finish", "dest": "/api/admin/match/[id]/finish.js?id=$1" },
+    { "src": "/api/admin/match/([^/]+)", "dest": "/api/admin/match/[id].js?id=$1" },
+    { "src": "/api/bracket/(.*)", "dest": "/api/bracket/[sport].js?sport=$1" },
+    { "src": "/api/match/(.*)", "dest": "/api/match/[id].js?id=$1" },
+    { "src": "/api/teams", "dest": "/api/teams.js" },
+    { "src": "/api/stats", "dest": "/api/stats.js" },
+    { "src": "/app.js", "dest": "/public/app.js" },
+    { "src": "/styles.css", "dest": "/public/styles.css" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
