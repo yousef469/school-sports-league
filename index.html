@@ -9,11 +9,17 @@
 </head>
 <body>
     <div class="app">
-        <!-- Main Header -->
+        <!-- Header -->
         <header class="main-header">
-            <div class="logo">🏆 School Sports League</div>
+            <div class="header-left">
+                <div class="logo">🏆 School Sports League</div>
+                <nav class="main-nav">
+                    <button class="main-nav-btn active" onclick="showSection('matches')">Matches</button>
+                    <button class="main-nav-btn" onclick="showSection('table')">Table</button>
+                </nav>
+            </div>
             <nav class="header-nav">
-                <button class="nav-btn" onclick="showPage('joinPage')">📝 Join Competition</button>
+                <button class="nav-btn" onclick="showPage('joinPage')">📝 Join</button>
                 <button class="nav-btn admin-btn" onclick="showPage('adminLogin')">🔐 Admin</button>
             </nav>
         </header>
@@ -21,45 +27,36 @@
         <!-- Home Page -->
         <div id="homePage" class="page active">
             <!-- Matches Section -->
-            <section class="section">
-                <h2 class="section-title">🔴 Live Matches</h2>
-                <div id="liveMatches" class="matches-container"></div>
-            </section>
-
-            <section class="section">
-                <h2 class="section-title">📅 Upcoming Matches</h2>
-                <div id="upcomingMatches" class="matches-container"></div>
-            </section>
-
-            <section class="section">
-                <h2 class="section-title">✅ Completed Matches</h2>
-                <div id="completedMatches" class="matches-container"></div>
-            </section>
-
-            <!-- Tournament Bracket Section -->
-            <section class="section bracket-section">
-                <h2 class="section-title">🏆 Tournament Bracket</h2>
-                <div class="bracket-toggle">
-                    <button class="bracket-btn active" data-sport="football" onclick="switchBracket('football')">⚽ Football</button>
-                    <button class="bracket-btn" data-sport="volleyball" onclick="switchBracket('volleyball')">🏐 Volleyball</button>
+            <div id="matchesSection" class="main-section active">
+                <div class="filter-bar">
+                    <div class="sport-pills">
+                        <button class="sport-pill active" onclick="filterSport('all')">All</button>
+                        <button class="sport-pill" onclick="filterSport('football')">⚽ Football</button>
+                        <button class="sport-pill" onclick="filterSport('volleyball')">🏐 Volleyball</button>
+                    </div>
+                    <div class="status-filters">
+                        <button class="status-btn active" onclick="filterStatus('all')">All</button>
+                        <button class="status-btn" onclick="filterStatus('live')">🔴 Live</button>
+                        <button class="status-btn" onclick="filterStatus('upcoming')">Upcoming</button>
+                        <button class="status-btn" onclick="filterStatus('ended')">Ended</button>
+                    </div>
                 </div>
-                <div class="bracket-wrapper">
-                    <div id="tournamentBracket" class="tournament-bracket"></div>
-                </div>
-            </section>
+                <div id="matchesList" class="matches-list"></div>
+            </div>
 
-            <!-- Teams Section -->
-            <section class="section">
-                <h2 class="section-title">👥 Registered Teams</h2>
-                <div class="teams-toggle">
-                    <button class="teams-btn active" onclick="showTeams('football')">⚽ Football</button>
-                    <button class="teams-btn" onclick="showTeams('volleyball')">🏐 Volleyball</button>
+            <!-- Table Section -->
+            <div id="tableSection" class="main-section">
+                <div class="table-header">
+                    <button class="table-sport-btn active" data-sport="football" onclick="switchTableSport('football')">⚽ Football</button>
+                    <button class="table-sport-btn" data-sport="volleyball" onclick="switchTableSport('volleyball')">🏐 Volleyball</button>
                 </div>
-                <div id="teamsList" class="teams-grid"></div>
-            </section>
+                <div class="bracket-container">
+                    <div id="bracketView" class="world-cup-bracket"></div>
+                </div>
+            </div>
         </div>
 
-        <!-- Join Competition Page -->
+        <!-- Join Page -->
         <div id="joinPage" class="page">
             <button class="back-btn" onclick="showPage('homePage')">← Back</button>
             <div class="container">
@@ -73,14 +70,14 @@
                             </div>
                             <div class="form-group">
                                 <label>Team Name</label>
-                                <input type="text" id="teamName" required placeholder="Choose a team name">
+                                <input type="text" id="teamName" required placeholder="Team name">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Grade</label>
                                 <select id="grade" required>
-                                    <option value="">Select Grade</option>
+                                    <option value="">Select</option>
                                     <option value="10">Grade 10</option>
                                     <option value="11">Grade 11</option>
                                     <option value="12">Grade 12</option>
@@ -89,30 +86,23 @@
                             <div class="form-group">
                                 <label>Sport</label>
                                 <select id="sport" required>
-                                    <option value="">Select Sport</option>
+                                    <option value="">Select</option>
                                     <option value="football">⚽ Football (8 players)</option>
                                     <option value="volleyball">🏐 Volleyball (5 players)</option>
                                 </select>
                             </div>
                         </div>
-                        
                         <div id="teammatesSection" class="teammates-section" style="display:none;">
-                            <h3>👥 Add Your Teammates</h3>
+                            <h3>👥 Teammates</h3>
                             <p class="hint" id="teammatesHint"></p>
                             <div id="teammatesInputs" class="teammates-grid"></div>
                         </div>
-
                         <div class="form-group" id="passwordSection" style="display:none;">
                             <label>Team Password</label>
-                            <input type="password" id="teamPassword" placeholder="Create a password">
-                            <div class="warning-box">
-                                <span>⚠️ DO NOT SHARE THIS PASSWORD OR YOUR TEAM WILL BE ELIMINATED!</span>
-                            </div>
+                            <input type="password" id="teamPassword" placeholder="Create password">
+                            <div class="warning-box">⚠️ DON'T SHARE OR YOU'LL BE ELIMINATED!</div>
                         </div>
-
-                        <button type="submit" class="btn btn-primary btn-full" id="submitBtn" style="display:none;">
-                            Create Team
-                        </button>
+                        <button type="submit" class="btn btn-primary btn-full" id="submitBtn" style="display:none;">Create Team</button>
                     </form>
                     <div id="createMessage" class="message"></div>
                 </div>
@@ -124,9 +114,9 @@
             <button class="back-btn" onclick="showPage('homePage')">← Back</button>
             <div class="container small">
                 <div class="card">
-                    <h2>🔐 Admin Login</h2>
+                    <h2>🔐 Admin</h2>
                     <div class="form-group">
-                        <input type="password" id="adminPassword" placeholder="Admin password">
+                        <input type="password" id="adminPassword" placeholder="Password">
                     </div>
                     <button class="btn btn-primary btn-full" onclick="adminLogin()">Login</button>
                     <div id="adminMessage" class="message"></div>
@@ -147,7 +137,6 @@
                     <button class="tab-btn" onclick="showAdminTab('matches')">⚽ Matches</button>
                     <button class="tab-btn" onclick="showAdminTab('champion')">🏆 Champion</button>
                 </div>
-                
                 <div id="adminTeams" class="admin-tab active">
                     <div class="sport-filter">
                         <button class="filter-btn active" onclick="filterAdminTeams('all')">All</button>
@@ -156,30 +145,26 @@
                     </div>
                     <div id="adminTeamsList" class="teams-list"></div>
                 </div>
-                
                 <div id="adminDraw" class="admin-tab">
                     <div class="draw-section">
-                        <h3>⚽ Football Draw</h3>
+                        <h3>⚽ Football</h3>
                         <p id="footballDrawStatus"></p>
-                        <button class="btn btn-primary" onclick="performDraw('football')">🎲 Randomize Draw</button>
+                        <button class="btn btn-primary" onclick="performDraw('football')">🎲 Draw</button>
                     </div>
                     <div class="draw-section">
-                        <h3>🏐 Volleyball Draw</h3>
+                        <h3>🏐 Volleyball</h3>
                         <p id="volleyballDrawStatus"></p>
-                        <button class="btn btn-primary" onclick="performDraw('volleyball')">🎲 Randomize Draw</button>
+                        <button class="btn btn-primary" onclick="performDraw('volleyball')">🎲 Draw</button>
                     </div>
                 </div>
-                
                 <div id="adminMatches" class="admin-tab">
                     <div class="sport-filter">
-                        <button class="filter-btn active" onclick="filterMatches('football')">⚽ Football</button>
-                        <button class="filter-btn" onclick="filterMatches('volleyball')">🏐 Volleyball</button>
+                        <button class="filter-btn active" onclick="filterMatches('football')">Football</button>
+                        <button class="filter-btn" onclick="filterMatches('volleyball')">Volleyball</button>
                     </div>
-                    <div id="matchesList" class="matches-list"></div>
+                    <div id="adminMatchesList" class="matches-list-admin"></div>
                 </div>
-                
                 <div id="adminChampion" class="admin-tab">
-                    <h3>🏆 Set Defending Champion</h3>
                     <div class="champion-section">
                         <h4>⚽ Football Champion</h4>
                         <select id="footballChampion"></select>
@@ -202,7 +187,6 @@
             </div>
         </div>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
